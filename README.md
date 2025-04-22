@@ -1,10 +1,10 @@
-```
+
 # 🛠️ Prebuilt Python Logger
 
 A lightweight, plug-and-play `logger.py` you can copy into any Python project.  
 It supports colorized terminal output, rotating file logs, and is easy to configure using `.env`.
 
----
+
 
 ## 📦 Features
 
@@ -76,10 +76,3 @@ All logs are written to `logs/app.log`. The directory is auto-created if it does
 - `python-dotenv`
 
 (Already included in `requirements.txt`)
-
----
-
-## 📝 License
-
-MIT – use freely and customize as needed.
-```
