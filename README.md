@@ -56,7 +56,7 @@ python example.py
 ```python
 from logger import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger(ADD SERVICE NAME HERE!)
 
 logger.info("Logger is working!")
 logger.error("Something went wrong!")
