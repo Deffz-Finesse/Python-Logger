@@ -1,10 +1,10 @@
 import os
 import logging
+import datetime
 from dotenv import load_dotenv
 from colorlog import ColoredFormatter
 from logging.handlers import RotatingFileHandler
 
-# Load environment variables
 load_dotenv()
 
 # Environment Config
@@ -22,22 +22,39 @@ if ENABLE_FILE_LOG:
     os.makedirs(LOG_DIR, exist_ok=True)
 
 # Formatter - Console and File (No color in file logs)
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-LOG_FORMAT = "%(asctime)s.%(msecs)03d [%(name)s] - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+LOG_FORMAT = "%(asctime)s [%(name)s] - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
 
-# Colored Formatter for console output
-COLORED_FORMAT = ColoredFormatter(
+# Custom formatter to include milliseconds
+class MillisecondFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.datetime.fromtimestamp(record.created)
+        if datefmt:
+            s = dt.strftime(datefmt)
+            return s[:-3]
+        return super().formatTime(record, datefmt)
+
+# Colored formatter subclass to support milliseconds in console
+class ColoredMillisecondFormatter(ColoredFormatter):
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.datetime.fromtimestamp(record.created)
+        if datefmt:
+            s = dt.strftime(datefmt)
+            return s[:-3]
+        return super().formatTime(record, datefmt)
+
+# Use custom colored formatter for console output
+COLORED_FORMAT = ColoredMillisecondFormatter(
     "%(log_color)s%(asctime)s [%(name)s] - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
     datefmt=DATE_FORMAT,
     log_colors={
-        "DEBUG":    "cyan",
-        "INFO":     "green",
-        "WARNING":  "yellow",
-        "ERROR":    "red",
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
         "CRITICAL": "bold_red",
     },
 )
-
 
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -67,14 +84,10 @@ def get_logger(name: str) -> logging.Logger:
     # File Handler with rotation (optional)
     if ENABLE_FILE_LOG:
         file_handler = RotatingFileHandler(
-            LOG_FILE,
-            maxBytes=5 * 1024 * 1024,
-            backupCount=5
+            LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=5
         )
         file_handler.setLevel(LOG_LEVEL)
-        file_handler.setFormatter(
-            logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)
-        )
+        file_handler.setFormatter(MillisecondFormatter(LOG_FORMAT, datefmt=DATE_FORMAT))
         logger.addHandler(file_handler)
 
     # Prevent logs from propagating to the root logger
